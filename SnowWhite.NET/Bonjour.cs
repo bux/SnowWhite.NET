@@ -1,39 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using ZeroconfService;
 
-
 namespace SnowWhite.NET
 {
-    internal class Bonjour
+    public class Bonjour
     {
         private const string DOMAIN = "local";
         private const string TYPE = "_airplay._tcp";
-        private string m_Name = String.Format("{0} - {1}", SystemInformation.ComputerName, "SnowWhite");
         private const int PORT = 7000;
+        private readonly string m_name = String.Format("{0} - {1}", SystemInformation.ComputerName, "SnowWhite");
+        private NetService m_publishService;
 
-        private bool m_Publishing;
+        private bool m_publishing;
 
-        private NetService m_PublishService;
-        private Server m_Server;
+        private Server m_theServer;
 
 
         public Bonjour()
         {
-            try
+            if (bonjourIsInstalled())
             {
-                if (bonjourIsInstalled())
-                {
-                    publishTheService();
-                }
-            }
-            catch (Exception)
-            {
-                throw;
+                //start the TCP Server
+                m_theServer = new Server(PORT);
+
+
+                PublishTheService();
             }
         }
 
@@ -47,8 +40,8 @@ namespace SnowWhite.NET
 
             try
             {
-                bonjourVersion = NetService.DaemonVersion;
-                Debug.WriteLine(String.Format("Bonjour Version: {0}", NetService.DaemonVersion));
+                bonjourVersion = DNSService.DaemonVersion;
+                Debug.WriteLine(String.Format("Bonjour Version: {0}", DNSService.DaemonVersion));
             }
             catch (Exception ex)
             {
@@ -77,18 +70,24 @@ namespace SnowWhite.NET
         }
 
 
-        private void publishTheService()
+        private void PublishTheService()
         {
-            m_PublishService = new NetService(DOMAIN,TYPE,m_Name,PORT);
+            m_publishService = new NetService(DOMAIN, TYPE, m_name, PORT);
 
             //add delegates for success/false
-           // m_PublishService.DidPublishService += publishService_DidPublishService;
-          //  m_PublishService.DidNotPublishService += publishService_DidNotPublishService;
+            m_publishService.DidPublishService += publishService_DidPublishService;
+            m_publishService.DidNotPublishService += publishService_DidNotPublishService;
 
-            m_PublishService.Publish();
-
-
+            m_publishService.Publish();
         }
 
+        private void publishService_DidNotPublishService(NetService service, DNSServiceException exception)
+        {
+        }
+
+        private void publishService_DidPublishService(NetService service)
+        {
+            m_publishing = true;
+        }
     }
 }
