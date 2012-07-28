@@ -23,7 +23,9 @@ namespace SnowWhite.NET
             if (bonjourIsInstalled())
             {
                 //start the TCP Server
-              //  m_theServer = new Server(PORT);
+                m_theServer = new Server(PORT);
+
+                m_theServer.StartServer();
 
 
                 PublishTheService();

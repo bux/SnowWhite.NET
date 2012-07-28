@@ -40,7 +40,7 @@ namespace SnowWhite.NET
         /// <summary>
         /// Starts the server
         /// </summary>
-        private void StartServer()
+        public void StartServer()
         {
             Debug.WriteLine("Starting Server");
             m_listenerThread.Start();
@@ -49,7 +49,7 @@ namespace SnowWhite.NET
         /// <summary>
         /// Stops the server
         /// </summary>
-        private void StopServer()
+        public void StopServer()
         {
             Debug.WriteLine("Stopping server");
             foreach (TcpClient tcpClient in m_dicCurrentConnections.Values)
