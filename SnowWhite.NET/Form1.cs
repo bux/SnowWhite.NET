@@ -18,7 +18,7 @@ namespace SnowWhite.NET
 
         private void button1_Click(object sender, EventArgs e)
         {
-            new Bonjour();
+            var bonj = new Bonjour();
         }
     }
 }
