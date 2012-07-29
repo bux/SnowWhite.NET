@@ -12,7 +12,7 @@ namespace SnowWhite.NET
     {
         private const string DOMAIN = "local";
         private const string TYPE = "_airplay._tcp";
-        private const int PORT = 7000;
+        private const int PORT = 7100;
         private readonly string m_name = String.Format("{0} - {1}", SystemInformation.ComputerName, "SnowWhite");
         private readonly Server m_theServer;
         private NetService m_publishService;
@@ -79,14 +79,7 @@ namespace SnowWhite.NET
             m_publishService = new NetService(DOMAIN, TYPE, m_name, PORT);
 
 
-            string macAddr =(from nic in NetworkInterface.GetAllNetworkInterfaces()
-                             where nic.OperationalStatus == OperationalStatus.Up
-                             select nic.GetPhysicalAddress().ToString()).FirstOrDefault();
-
-            if (string.IsNullOrEmpty(macAddr) == true)
-            {
-                macAddr = "11:22:33:44:55:66";
-            }
+            string macAddr = Utils.GetMacAddress();
             
             // AirPlay now shows everywhere :) not only in "Photos.app" and "Videos.app"
             var dicTXTRecord = new Dictionary<string, string>();
