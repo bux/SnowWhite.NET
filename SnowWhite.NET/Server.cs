@@ -13,15 +13,13 @@ namespace SnowWhite.NET
         private readonly Thread m_listenerThread;
         private readonly int m_port;
         private readonly TcpListener m_tcpListener;
-        private NetworkStream m_twoWayStream;
-
 
         public Server(int port)
         {
             // in case port is missing
             if (port <= 0)
             {
-                port = 7000;
+                port = 7100;
             }
 
             m_port = port;
