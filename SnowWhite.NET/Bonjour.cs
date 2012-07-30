@@ -12,7 +12,7 @@ namespace SnowWhite.NET
     {
         private const string DOMAIN = "local";
         private const string TYPE = "_airplay._tcp";
-        private const int PORT = 7100;
+        private const int PORT = 9001;
         private readonly string m_name = String.Format("{0} - {1}", SystemInformation.ComputerName, "SnowWhite");
         private readonly Server m_theServer;
         private NetService m_publishService;
@@ -83,11 +83,16 @@ namespace SnowWhite.NET
             
             // AirPlay now shows everywhere :) not only in "Photos.app" and "Videos.app"
             var dicTXTRecord = new Dictionary<string, string>();
-            dicTXTRecord.Add("model", "SnowWhite1,0");
-            dicTXTRecord.Add("deviceid", macAddr);
+            dicTXTRecord.Add("model", "AppleTV2,1");
+
+            dicTXTRecord.Add("deviceid", "58:55:CA:06:BD:9E");
+            //dicTXTRecord.Add("deviceid", macAddr);
 
             // Bit field -> http://nto.github.com/AirPlay.html#servicediscovery-airplayservice
             dicTXTRecord.Add("features", "0x39f7");
+
+            dicTXTRecord.Add("protovers", "1.0");
+            dicTXTRecord.Add("srcvers", "101.10");
 
             // set to 1 to enable
             dicTXTRecord.Add("pw", "0");

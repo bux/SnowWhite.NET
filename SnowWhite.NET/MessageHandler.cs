@@ -113,6 +113,8 @@ namespace SnowWhite.NET
         private void HandleRequest(string request, NetworkStream clientStream, List<byte> rawData)
         {
 
+            Debug.WriteLine(request);
+
             // This is the first message the Apple device will send
             // http://nto.github.com/AirPlay.html#servicediscovery-airplayservice
             if (request.StartsWith("POST /reverse HTTP/1.1")) 
@@ -184,11 +186,11 @@ namespace SnowWhite.NET
             if (request.StartsWith("GET /stream.xml HTTP/1.1"))
             {
                 var properties = new Dictionary<string, KeyValuePair<string, string>>();
-                properties.Add("height", new KeyValuePair<string, string>("360", "integer"));
-                properties.Add("overscanned", new KeyValuePair<string, string>("false", "boolean"));
+                properties.Add("height", new KeyValuePair<string, string>("720", "integer"));
+                properties.Add("overscanned", new KeyValuePair<string, string>("true", "boolean"));
                 properties.Add("refreshRate", new KeyValuePair<string, string>("0.016666666666666666", "real"));
-                properties.Add("version", new KeyValuePair<string, string>("0.1", "string"));
-                properties.Add("width", new KeyValuePair<string, string>("640", "integer"));
+                properties.Add("version", new KeyValuePair<string, string>("130.14", "string"));
+                properties.Add("width", new KeyValuePair<string, string>("1280", "integer"));
 
                 var propertyList = Utils.BuildPropertyListXML(properties);
 
@@ -201,7 +203,6 @@ namespace SnowWhite.NET
 
                 sendResponse(response, clientStream);
             }
-
 
         }
 

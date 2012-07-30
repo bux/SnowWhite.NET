@@ -52,22 +52,22 @@ namespace SnowWhite.NET
             foreach (var property in properties)
             {
                 // <key>hello</key>
-                messageBuilder.Append(String.Format("<key>{0}<\\key>\r\n", property.Key));
+                messageBuilder.Append(String.Format("<key>{0}</key>\r\n", property.Key));
 
                 if (property.Value.Value == "boolean")
                 {
                     // <true\>
-                    messageBuilder.Append(String.Format("<{0}\\>\r\n", property.Value.Key));
+                    messageBuilder.Append(String.Format("<{0}/>\r\n", property.Value.Key));
                 }
                 else
                 {
                     //<string>world</string>
-                    messageBuilder.Append(String.Format("<{1}>{0}<\\{1}>\r\n", property.Value.Key, property.Value.Value));   
+                    messageBuilder.Append(String.Format("<{1}>{0}</{1}>\r\n", property.Value.Key, property.Value.Value));   
                 }
             }
 
-            messageBuilder.Append("<\\dict>\r\n");
-            messageBuilder.Append("<\\plist>\r\n");
+            messageBuilder.Append("</dict>\r\n");
+            messageBuilder.Append("</plist>\r\n");
 
             return messageBuilder.ToString();
         }
