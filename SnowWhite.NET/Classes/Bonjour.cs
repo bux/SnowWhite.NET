@@ -12,10 +12,13 @@ namespace SnowWhite.NET
     {
         private const string DOMAIN = "local";
         private const string TYPE = "_airplay._tcp";
-        private const int PORT = 9001;
+        //private const int SERVICE_PORT = 9001;
+        private const int SERVICE_PORT = 7000;
         private readonly string m_name = String.Format("{0} - {1}", SystemInformation.ComputerName, "SnowWhite");
-        private readonly Server m_theServer;
+        private readonly TcpServer m_TheTcpServer;
         private NetService m_publishService;
+
+        private bool m_isPrepared = false;
 
         private bool m_publishing;
 
@@ -24,13 +27,7 @@ namespace SnowWhite.NET
         {
             if (bonjourIsInstalled())
             {
-                //start the TCP Server
-                m_theServer = new Server(PORT);
-
-                m_theServer.StartServer();
-
-
-                PublishTheService();
+                PrepareService();
             }
         }
 
@@ -74,9 +71,9 @@ namespace SnowWhite.NET
         }
 
 
-        private void PublishTheService()
+        private void PrepareService()
         {
-            m_publishService = new NetService(DOMAIN, TYPE, m_name, PORT);
+            m_publishService = new NetService(DOMAIN, TYPE, m_name, SERVICE_PORT);
 
 
             string macAddr = Utils.GetMacAddress();
@@ -103,7 +100,20 @@ namespace SnowWhite.NET
             m_publishService.DidPublishService += publishService_DidPublishService;
             m_publishService.DidNotPublishService += publishService_DidNotPublishService;
 
-            m_publishService.Publish();
+            m_isPrepared = true;
+        }
+
+        public bool StartPublishing()
+        {
+            if (m_isPrepared == true)
+            {
+                m_publishService.Publish();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private void publishService_DidNotPublishService(NetService service, DNSServiceException exception)
@@ -114,5 +124,7 @@ namespace SnowWhite.NET
         {
             m_publishing = true;
         }
+
+
     }
 }

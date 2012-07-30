@@ -18,7 +18,9 @@ namespace SnowWhite.NET
 
         private void button1_Click(object sender, EventArgs e)
         {
-            var bonj = new Bonjour();
+            var aph = new AirPlayHandler();
+            aph.StartBonjour();
+            aph.StartServers();
         }
     }
 }

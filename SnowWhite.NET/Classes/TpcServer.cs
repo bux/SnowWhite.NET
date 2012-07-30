@@ -7,19 +7,19 @@ using System.Threading;
 
 namespace SnowWhite.NET
 {
-    public class Server
+    public class TcpServer
     {
         private readonly Dictionary<int, TcpClient> m_dicCurrentConnections;
         private readonly Thread m_listenerThread;
         private readonly int m_port;
         private readonly TcpListener m_tcpListener;
 
-        public Server(int port)
+        public TcpServer(int port)
         {
             // in case port is missing
             if (port <= 0)
             {
-                port = 7100;
+                port = 9001;
             }
 
             m_port = port;
@@ -127,7 +127,6 @@ namespace SnowWhite.NET
             var handler = new MessageHandler();
             handler.ReadClientStream(clientStream, tcpClient);
 
-            
 
             // Now that we have the stream
             // we can close the connection
