@@ -26,13 +26,8 @@ namespace SnowWhite.NET
         {
             m_Bonjour = new Bonjour();
 
-            m_MainTcpServer = new TcpServer(MAIN_PORT);
+            //m_MainTcpServer = new TcpServer(MAIN_PORT);
             m_MirrorTcpServer = new TcpServer(MIRROR_PORT);
-
-            // todo: move to mirroring server
-            m_NtpClient = new NTPClient("", NTP_PORT);
-            m_NtpClient.Connect(false);
-
         }
 
         public void StartBonjour()
@@ -42,8 +37,37 @@ namespace SnowWhite.NET
 
         public void StartServers()
         {
-            if (m_MainTcpServer != null) m_MainTcpServer.StartServer();
-            if (m_MirrorTcpServer != null) m_MirrorTcpServer.StartServer();
+           // if (m_MainTcpServer != null) m_MainTcpServer.StartServer(true);
+            if (m_MirrorTcpServer != null) m_MirrorTcpServer.StartServer(false);
+
         }
+
+        public void StopEverything()
+        {
+            if (m_MainTcpServer != null) m_MainTcpServer.StopServer();
+            if (m_MirrorTcpServer != null) m_MirrorTcpServer.StopServer();
+
+            if (m_Bonjour != null) m_Bonjour.StartPublishing();
+
+        }
+
+        public void ConnectNTP(String ip, int port)
+        {
+            NTPClient client;
+            try
+            {
+                client = new NTPClient(ip, port);
+                client.Connect(false);
+            }
+            catch (Exception e)
+            {
+
+                Console.WriteLine("ERROR: {0}", e.Message);
+
+            }
+
+
+        }
+
     }
 }

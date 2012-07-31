@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using TimeSync;
 
 namespace SnowWhite.NET
 {
@@ -13,6 +14,8 @@ namespace SnowWhite.NET
         private readonly Thread m_listenerThread;
         private readonly int m_port;
         private readonly TcpListener m_tcpListener;
+        private bool m_CloseAfterClientConnect;
+
 
         public TcpServer(int port)
         {
@@ -38,8 +41,9 @@ namespace SnowWhite.NET
         /// <summary>
         /// Starts the server
         /// </summary>
-        public void StartServer()
+        public void StartServer(bool CloseAfterClientConnect)
         {
+            m_CloseAfterClientConnect = CloseAfterClientConnect;
             Debug.WriteLine("Starting Server");
             m_listenerThread.Start();
         }
@@ -75,7 +79,25 @@ namespace SnowWhite.NET
 
             Debug.WriteLine("TcpListener started - Waiting for connections");
 
-            m_tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, m_tcpListener);
+
+            if (m_CloseAfterClientConnect ==true)
+            {
+                
+                 m_tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, m_tcpListener);
+
+            }
+            else
+            {
+
+                    m_tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, m_tcpListener);
+
+                
+
+            }
+          
+
+//Debug.WriteLine("Listener Closed: " + m_tcpListener.LocalEndpoint.ToString() );
+
         }
 
         /// <summary>
@@ -94,6 +116,9 @@ namespace SnowWhite.NET
 
                 Debug.WriteLine("Client connected on port: " + tcpClient.Client.RemoteEndPoint);
 
+                // don't stop to listen
+                m_tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, m_tcpListener);
+
                 // Parameterized
                 var clientThread = new Thread(HandleClientCommunication);
 
@@ -102,8 +127,7 @@ namespace SnowWhite.NET
 
                 m_dicCurrentConnections.Add(clientThread.ManagedThreadId, tcpClient);
 
-                // don't stop to listen
-                m_tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, m_tcpListener);
+                
             }
             catch (Exception ex)
             {
@@ -111,32 +135,79 @@ namespace SnowWhite.NET
             }
         }
 
+
+
+        private void StartNTP(object s, EventArgs e)
+        {
+
+            TcpClient t;
+
+            if ( m_dicCurrentConnections.ContainsKey( Thread.CurrentThread.ManagedThreadId) )
+            {
+                 m_dicCurrentConnections.TryGetValue(Thread.CurrentThread.ManagedThreadId,out t);
+                string ip = t.Client.RemoteEndPoint.ToString().Split(":".ToCharArray()[0])[0];
+
+
+
+                NTPClient ntpClient = new NTPClient(ip, AirPlayHandler.NTP_PORT);
+
+                ntpClient.Connect(false);
+
+
+            }
+
+
+
+        }
+
+      
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="currentClient">Needs to be object -> parameterized thread</param>
         private void HandleClientCommunication(object currentClient)
-        {
+        {   TcpClient m_tcpClient;
             // cast currentClient
-            var tcpClient = (TcpClient) currentClient;
+            m_tcpClient = (TcpClient)currentClient;
 
-            Thread.CurrentThread.Name = tcpClient.Client.RemoteEndPoint.ToString();
+            Thread.CurrentThread.Name = m_tcpClient.Client.RemoteEndPoint.ToString();
 
-            NetworkStream clientStream = tcpClient.GetStream();
+            NetworkStream clientStream = m_tcpClient.GetStream();
+
+            
+
 
             var handler = new MessageHandler();
-            handler.ReadClientStream(clientStream, tcpClient);
 
+            handler.m_StartNTP += this.StartNTP;
 
             // Now that we have the stream
             // we can close the connection
 
-            if (tcpClient.Connected)
-            {
-                tcpClient.Close();
-            }
+            if (m_CloseAfterClientConnect == true )
 
-            m_dicCurrentConnections.Remove(Thread.CurrentThread.ManagedThreadId);
+            {
+
+                handler.ReadClientStream(clientStream, m_tcpClient);
+
+                if (m_tcpClient.Connected)
+                {
+                    m_tcpClient.Close();
+                }
+
+                m_dicCurrentConnections.Remove(Thread.CurrentThread.ManagedThreadId); 
+
+
+            }
+            else
+            {
+
+                handler.ReadClientStreamEndless(clientStream, m_tcpClient);
+
+
+            }
+           
         }
 
 

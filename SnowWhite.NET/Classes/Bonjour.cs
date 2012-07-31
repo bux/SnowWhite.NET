@@ -116,6 +116,20 @@ namespace SnowWhite.NET
             }
         }
 
+        public bool StopPublishing()
+        {
+            if (m_isPrepared == true)
+            {
+                m_publishService.Stop();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
         private void publishService_DidNotPublishService(NetService service, DNSServiceException exception)
         {
         }

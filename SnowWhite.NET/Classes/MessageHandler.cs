@@ -25,10 +25,13 @@ namespace SnowWhite.NET
             Debug.WriteLine(String.Format("{0} hit \"{1}\"",
                                           Thread.CurrentThread.Name, "ReadClientStream"));
 
+
+
+
             if (tcpClient.Connected && clientStream.CanRead)
             {
                 var rawData = new List<byte>();
-                var readBuffer = new byte[1024];
+                var readBuffer = new byte[2048];
 
                 var myMessage = new StringBuilder();
 
@@ -103,6 +106,111 @@ namespace SnowWhite.NET
             }
         }
 
+        public delegate void StartNTP(object sender, EventArgs e);
+        public event StartNTP m_StartNTP;
+
+
+
+        public void ReadClientStreamEndless(NetworkStream clientStream, TcpClient tcpClient)
+        {
+            Debug.WriteLine(String.Format("{0} hit \"{1}\"",
+                                          Thread.CurrentThread.Name, "ReadClientStreamEndless"));
+
+            while (tcpClient.Connected )
+
+            {
+
+                if (clientStream.CanRead && clientStream.DataAvailable)
+                {
+                    var rawData = new List<byte>();
+                    var readBuffer = new byte[1024];
+
+                    var myMessage = new StringBuilder();
+
+                    int numberOfBytesRead = 0;
+
+                    do
+                    {
+                        try
+                        {
+                            numberOfBytesRead = clientStream.Read(readBuffer, 0, readBuffer.Length);
+                            
+                            //myMessage.Append(Encoding.ASCII.GetString(readBuffer, 0, numberOfBytesRead));
+                            myMessage.Append(Encoding.UTF8.GetString(readBuffer, 0, numberOfBytesRead));
+
+
+                            rawData.AddRange(readBuffer.Take(numberOfBytesRead));
+
+                            Thread.Sleep(10);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine("Error while reading the Stream" + ex.Message);
+                        }
+                    } while (tcpClient.Connected && clientStream.DataAvailable); //make sure the client is still connected before checking for DataAvailable because the socket could get closed halfway through a read
+
+                    // again we need to make sure that the client is connected
+                    // because the socket could get closed halfway through a read
+                    // Don't care for a closed socket, because we can't send any replies
+                    if (tcpClient.Connected)
+                    {
+                        var message = myMessage.ToString();
+                        Debug.WriteLine(String.Format("{0} recived message: {1}", Thread.CurrentThread.Name, message));
+
+                        //clients IpAddress
+                        var IpAddress = GetClientIPAddress(tcpClient);
+
+
+                        // as the tcp socket is a persitant connection we might recieve more than one message
+                        // so the string has more than one http verbs (GET, POST, etc...)
+                        var regX = new Regex("^HTTP|^GET [.]*|^POST [.]*|^PUT [.]*", RegexOptions.Multiline);
+                        var matches = regX.Matches(message);
+
+                        // so each new verb is a new request
+                        // split the message
+                        var requests = new List<String>();
+                        for (int i = 0; i < matches.Count; i++)
+                        {
+                            string request;
+                            // all elements except the last one
+                            if (i + 1 < matches.Count)
+                            {
+                                // substring beginning from the index of match to the index of the next match
+                                request = message.Substring(matches[i].Index, matches[i + 1].Index - matches[i].Index);
+                            }
+                            else
+                            {
+                                // handle the last match different because there's no next match
+                                request = message.Substring(matches[i].Index);
+                            }
+
+                            requests.Add(request.Trim());
+
+                        }
+
+                        foreach (var request in requests)
+                        {
+                            // grab the request and handle it
+                            HandleRequest(request, clientStream, rawData);
+
+                            // todo: raise event
+                            //ClientConnected(this, request);
+                        }
+
+                    }
+
+
+
+
+                }
+                //tcpClient.Close();
+                //  clientStream.Close();
+
+            }
+
+
+        }
+
 
         /// <summary>
         /// Handles all the requests
@@ -113,7 +221,7 @@ namespace SnowWhite.NET
         private void HandleRequest(string request, NetworkStream clientStream, List<byte> rawData)
         {
 
-            Debug.WriteLine(request);
+            //Debug.WriteLine(request);
 
             // This is the first message the Apple device will send
             // http://nto.github.com/AirPlay.html#servicediscovery-airplayservice
@@ -176,8 +284,18 @@ namespace SnowWhite.NET
                                "Content-Type: text/x-apple-plist+xml\r\n" +
                                "Content-Length: " + (propertyList.Length + 1).ToString() + "\r\n\r\n" +
                                propertyList;
+   
+                response = "HTTP/1.1 200 OK\r\n" +
+                               "Date: " + String.Format("{0:R}", DateTime.Now) + "\r\n" +
+                               "Content-Type: text/x-apple-plist+xml\r\n" +
+                               "Content-Length: " + Encoding.UTF8.GetByteCount(propertyList).ToString() +"\r\n\r\n" +
+                               propertyList;
 
                 sendResponse(response, clientStream);
+
+
+              
+
                 return;
             }
 
@@ -192,16 +310,37 @@ namespace SnowWhite.NET
                 properties.Add("version", new KeyValuePair<string, string>("130.14", "string"));
                 properties.Add("width", new KeyValuePair<string, string>("1280", "integer"));
 
-                var propertyList = Utils.BuildPropertyListXML(properties);
-
+                var propertyList = System.Runtime.Serialization.Plists.PlistXmlDocument.CreateDocument(properties);//Utils.BuildPropertyListXML(properties);
+               
 
                 var response = "HTTP/1.1 200 OK\r\n" +
                                "Date: " + String.Format("{0:R}", DateTime.Now) + "\r\n" +
                                "Content-Type: text/x-apple-plist+xml\r\n" +
-                               "Content-Length: " + (propertyList.Length + 1).ToString() + "\r\n\r\n" +
+                               "Content-Length: " + (propertyList.Length+1).ToString() + "\r\n\r\n" +
+                               propertyList + "\r\n";
+
+
+
+    response = "HTTP/1.1 200 OK\r\n" +
+                               "Date: " + String.Format("{0:R}", DateTime.Now) + "\r\n" +
+                               "Content-Type: text/x-apple-plist+xml\r\n" +
+                               "Content-Length: " + Encoding.UTF8.GetByteCount(propertyList).ToString() + "\r\n\r\n" +
                                propertyList;
 
                 sendResponse(response, clientStream);
+
+                m_StartNTP(null, null);
+
+
+                return;
+            }
+
+
+
+            if (request.StartsWith("POST /stream HTTP/1.1"))
+            {
+                int i;
+
             }
 
         }
@@ -213,13 +352,14 @@ namespace SnowWhite.NET
         /// <param name="response"></param>
         private void sendResponse(string response, NetworkStream clientStream)
         {
-            var buffer = new ASCIIEncoding().GetBytes(response);
+            //var buffer = new ASCIIEncoding().GetBytes(response);
+            var buffer = Encoding.UTF8.GetBytes(response);
 
             try
             {
                 Debug.WriteLine(response);
                 clientStream.Write(buffer, 0, buffer.Length);
-                clientStream.Flush();
+               // clientStream.Flush();
                 
                 // todo: raise event
                 // responseSent(this, response);

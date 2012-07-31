@@ -28,25 +28,40 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
+            this.m_btnStart = new System.Windows.Forms.Button();
+            this.m_btnStop = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // button1
+            // m_btnStart
             // 
-            this.button1.Location = new System.Drawing.Point(12, 12);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(112, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Start everything!";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.m_btnStart.BackColor = System.Drawing.SystemColors.Control;
+            this.m_btnStart.Location = new System.Drawing.Point(12, 12);
+            this.m_btnStart.Name = "m_btnStart";
+            this.m_btnStart.Size = new System.Drawing.Size(112, 23);
+            this.m_btnStart.TabIndex = 0;
+            this.m_btnStart.Text = "Start everything!";
+            this.m_btnStart.UseVisualStyleBackColor = false;
+            this.m_btnStart.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // m_btnStop
+            // 
+            this.m_btnStop.BackColor = System.Drawing.SystemColors.Control;
+            this.m_btnStop.Enabled = false;
+            this.m_btnStop.Location = new System.Drawing.Point(147, 12);
+            this.m_btnStop.Name = "m_btnStop";
+            this.m_btnStop.Size = new System.Drawing.Size(112, 23);
+            this.m_btnStop.TabIndex = 1;
+            this.m_btnStop.Text = "Stop everything!";
+            this.m_btnStop.UseVisualStyleBackColor = false;
+            this.m_btnStop.Click += new System.EventHandler(this.m_btnStop_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(215, 47);
-            this.Controls.Add(this.button1);
+            this.ClientSize = new System.Drawing.Size(311, 89);
+            this.Controls.Add(this.m_btnStop);
+            this.Controls.Add(this.m_btnStart);
             this.Name = "Form1";
             this.Text = "SnowWhite.NET";
             this.ResumeLayout(false);
@@ -55,7 +70,8 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button m_btnStart;
+        private System.Windows.Forms.Button m_btnStop;
     }
 }
 
