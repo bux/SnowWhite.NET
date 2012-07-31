@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TimeSync;
 
 namespace SnowWhite.NET
 {
@@ -15,6 +16,7 @@ namespace SnowWhite.NET
         private readonly Bonjour m_Bonjour;
         private readonly TcpServer m_MainTcpServer;
         private readonly TcpServer m_MirrorTcpServer;
+        private readonly NTPClient m_NtpClient;
 
         public const int MAIN_PORT = 7000;
         public const int MIRROR_PORT = 7100;
@@ -26,6 +28,11 @@ namespace SnowWhite.NET
 
             m_MainTcpServer = new TcpServer(MAIN_PORT);
             m_MirrorTcpServer = new TcpServer(MIRROR_PORT);
+
+            // todo: move to mirroring server
+            m_NtpClient = new NTPClient("", NTP_PORT);
+            m_NtpClient.Connect(false);
+
         }
 
         public void StartBonjour()

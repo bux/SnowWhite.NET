@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="AirPlayHandler.cs" />
     <Compile Include="Classes\Bonjour.cs" />
+    <Compile Include="Classes\NTPClient.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
